@@ -1,31 +1,31 @@
 require('dotenv').config();
-const { App } = require('@slack/bolt');
+const { App, AwsLambdaReceiver } = require('@slack/bolt');
+
+const awsLambdaReceiver = new AwsLambdaReceiver({
+    signingSecret: process.env.SLACK_SIGNING_SECRET
+});
 
 const bot = new App({
     signingSecret: process.env.SLACK_SIGNING_SECRET,
     token: process.env.SLACK_BOT_TOKEN,
+    receiver: awsLambdaReceiver
 });
 
-(async () => {
-    // Start the app
-    await bot.start(process.env.PORT || 3000);
-    console.log('⚡️ Bolt app is running!');
 
-    bot.command('/pickup', async ({ command, ack, say }) => {
-        const membersResponse = await bot.client.conversations.members({ channel: command.channel_id });
+bot.command('/pickup', async ({ command, ack, say }) => {
+    const membersResponse = await bot.client.conversations.members({ channel: command.channel_id });
 
-        // Acknowledge command request
-        await ack();
-        const realUsers = await filterRealUsers(bot, membersResponse.members)
-        const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(bot, realUsers) : realUsers
-        const userChosenId = getRandom(onlineUsers).id;
+    // Acknowledge command request
+    await ack();
+    const realUsers = await filterRealUsers(bot, membersResponse.members)
+    const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(bot, realUsers) : realUsers
+    const userChosenId = getRandom(onlineUsers).id;
 
-        const text = command.text.replace('--online', '').trim();
+    const text = command.text.replace('--online', '').trim();
 
-        const message = text.length > 0 ? `you are picked up for: ${text}` : `you are picked up randomly by ${command.user_name}. But we don't know why 😔`;
-        await say(`Hey <@${userChosenId}> , ${message}`);
-    });
-})();
+    const message = text.length > 0 ? `you are picked up for: ${text}` : `you are picked up randomly by ${command.user_name}. But we don't know why 😔`;
+    await say(`Hey <@${userChosenId}> , ${message}`);
+});
 
 async function filterOnlineUsers(bot, users) {
     const usersPresencePromises = await Promise.allSettled(users.map(async (user) => {
@@ -55,4 +55,9 @@ async function filterRealUsers(bot, usersID) {
 
 function getRandom(list) {
     return list[Math.floor((Math.random() * list.length))];
+}
+
+module.exports.handler = async (event, context, callback) => {
+    const handler = await awsLambdaReceiver.start();
+    return handler(event, context, callback);
 }

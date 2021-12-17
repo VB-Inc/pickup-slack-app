@@ -2,19 +2,21 @@
   "name": "responder",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "nodemon index.js",
-    "start": "node index.js"
+    "start:dev": "nodemon app.js",
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^3.8.1",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "serverless": "^2.69.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "serverless-offline": "^8.3.1"
   }
 }
