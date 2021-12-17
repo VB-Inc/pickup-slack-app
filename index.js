@@ -17,11 +17,29 @@ const bot = new App({
         // Acknowledge command request
         await ack();
         const realUsers = await filterRealUsers(bot, membersResponse.members)
-        const userChoosenId = getRandom(realUsers).id;
+        const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(bot, realUsers) : realUsers
+        const userChosenId = getRandom(onlineUsers).id;
 
-        await say(`Hey <@${userChoosenId}> , you are the picked up randomly`);
+        const text = command.text.replace('--online', '').trim();
+
+        const message = text.length > 0 ? `you are picked up for: ${text}` : `you are picked up randomly by ${command.user_name}. But we don't know why 😔`;
+        await say(`Hey <@${userChosenId}> , ${message}`);
     });
 })();
+
+async function filterOnlineUsers(bot, users) {
+    const usersPresencePromises = await Promise.allSettled(users.map(async (user) => {
+        const userPresence = await bot.client.users.getPresence({ user: user.id });
+        return { presence: userPresence, user }
+    }))
+
+    const usersPresence = Array.from(usersPresencePromises).map(settledPromise => settledPromise.value)
+    const isOnline = user => user.presence.presence === 'active';
+    const onlineUsers = usersPresence.filter(isOnline);
+    console.log(onlineUsers)
+
+    return onlineUsers.map(onlineUser => onlineUser.user)
+}
 
 async function filterRealUsers(bot, usersID) {
     const usersResponse = await Promise.allSettled(usersID.map(id =>
