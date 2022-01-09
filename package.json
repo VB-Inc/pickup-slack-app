@@ -2,9 +2,13 @@
   "name": "responder",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "serverless offline --noPrependStageInUrl",
+    "cleanup": "rm -rf dist",
+    "build": "yarn cleanup && tsc -p .",
+    "build:watch": "yarn cleanup && tsc -w -p .",
+    "start": "yarn build && serverless offline --location dist --noPrependStageInUrl",
+    "start:debug": "yarn build && node --inspect ./node_modules/.bin/serverless offline --location dist --noPrependStageInUrl",
     "deploy": "serverless deploy"
   },
   "author": "",
@@ -16,6 +20,7 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.15",
-    "serverless-offline": "^8.3.1"
+    "serverless-offline": "^8.3.1",
+    "typescript": "^4.5.4"
   }
 }

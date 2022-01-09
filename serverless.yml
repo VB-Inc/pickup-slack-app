@@ -17,4 +17,7 @@ functions:
           method: post
 plugins:
   - serverless-offline
+custom:
+  serverless-offline:
+    port: 4000
 useDotEnv: true
