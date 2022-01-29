@@ -1,6 +1,6 @@
 import { Middleware, SlackCommandMiddlewareArgs } from '@slack/bolt';
 import { getUserProfilesFromConversation } from './user'
-
+import database from './db-instance'
 class List {
     static _data: Object[] = [];
 
@@ -30,15 +30,30 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
 
     // Get requested members list array
 
-    const listId = `list-${List._data.length}`;
-    List.add({
-        id: listId,
-        channelId: command.channel_id,
-        users: usersToAdd
-    })
+    await database.$connect();
+
+    let userIds: { id: string; }[] = [];
+    usersToAdd.forEach(user => {
+        if (user?.id) {
+            userIds.push({ id: (user.id as string) });
+        }
+    });
+
+    const list =
+        await database.list.create({
+            data: {
+                channelId: command.channel_id,
+                users: {
+                    create: [
+                        ...userIds
+                    ]
+                }
+            }
+        })
     // Store channelId, list of members ID and listName
 
-    await say(`${listId} created. Use this list anytime for picking up a random member`);
+    await database.$disconnect();
+    await say(`${list.id} created. Use this list anytime for picking up a random member`);
 }
 
 export { createList }
