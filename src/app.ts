@@ -3,15 +3,29 @@ import {
 } from '@slack/bolt';
 import { getRandomItemFromList } from './utils';
 import { app, receiver } from './boltApp'
-import { createList } from './list';
+import { createList, getListMembers } from './list/list';
+import { isCommandUsingList } from './list/utilities'
 
 
 app.command('/pickup', createList, async ({ command, ack, say }) => {
     // Acknowledge command request
     await ack();
 
-    const membersResponse: any = await app.client.conversations.members({ channel: command.channel_id });
-    const realUsers = await filterRealUsers(app, membersResponse.members)
+    let usersIds: string[] = [];
+    if (isCommandUsingList(command.text)) {
+        // add list usage logic
+        const listCommandStart = command.text.search(/--list=[0-9]{0,}/g);
+        const listCommandEnd = command.text.indexOf(' ', listCommandStart) >= 0 ? command.text.indexOf(' ', listCommandStart) : command.text.length;
+        const listCommand = command.text.substring(listCommandStart, listCommandEnd);
+        const listId = listCommand.split("=")[1];
+        const members = await getListMembers(Number(listId));
+        usersIds = members;
+        command.text = command.text.replace(/--list=[0-9]{0,}/g, '')
+    } else {
+        const membersResponse: any = await app.client.conversations.members({ channel: command.channel_id });
+        usersIds = membersResponse.members
+    }
+    const realUsers = await filterRealUsers(app, usersIds)
     const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(app, realUsers) : realUsers
     const userChosenId = getRandomItemFromList(onlineUsers).id;
 

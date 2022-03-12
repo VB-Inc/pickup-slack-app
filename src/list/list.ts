@@ -1,13 +1,6 @@
 import { Middleware, SlackCommandMiddlewareArgs } from '@slack/bolt';
-import { getUserProfilesFromConversation } from './user'
-import database from './db-instance'
-class List {
-    static _data: Object[] = [];
-
-    static add<T>(obj: T) {
-        this._data.push(obj);
-    }
-}
+import { getUserProfilesFromConversation } from '../user'
+import database from '../db-instance'
 
 const createListRegex = /^list create /g;
 const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say, ack, next }) => {
@@ -56,4 +49,16 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
     await say(`${list.id} created. Use this list anytime for picking up a random member`);
 }
 
-export { createList }
+const getListMembers = async (listId: number) => {
+    await database.$connect();
+
+    const members = await database.list.findFirst({
+        where: {
+            id: listId
+        }
+    }).users();
+
+    return members.map(member => member.id);
+}
+
+export { createList, getListMembers }
