@@ -8,14 +8,33 @@ datasource db {
 }
 
 model List {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
   channelId String
   users     User[]
+  Rotation  Rotation[]
 }
 
 model User {
-  id     String   @id
-  List   List? @relation(fields: [listId], references: [id])
-  listId Int?
+  id          String        @id
+  List        List?         @relation(fields: [listId], references: [id])
+  listId      Int?
+  RotationLog RotationLog[]
+}
+
+model Rotation {
+  id          Int           @id @default(autoincrement())
+  name        String
+  list        List          @relation(fields: [listId], references: [id])
+  listId      Int
+  RotationLog RotationLog[]
+}
+
+model RotationLog {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  user       User     @relation(fields: [userId], references: [id])
+  rotation   Rotation @relation(fields: [rotationId], references: [id])
+  userId     String
+  rotationId Int
 }

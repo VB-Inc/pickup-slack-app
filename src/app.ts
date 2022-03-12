@@ -1,26 +1,24 @@
 import {
     App
 } from '@slack/bolt';
-import { getRandomItemFromList } from './utils';
+import { getRandomItemFromList, getOptionFromText } from './utils';
 import { app, receiver } from './boltApp'
 import { createList, getListMembers } from './list/list';
 import { isCommandUsingList } from './list/utilities'
+import { createRotation } from './rotation'
 
 
-app.command('/pickup', createList, async ({ command, ack, say }) => {
+app.command('/pickup', createList, createRotation, async ({ command, ack, say }) => {
     // Acknowledge command request
     await ack();
 
     let usersIds: string[] = [];
     if (isCommandUsingList(command.text)) {
         // add list usage logic
-        const listCommandStart = command.text.search(/--list=[0-9]{0,}/g);
-        const listCommandEnd = command.text.indexOf(' ', listCommandStart) >= 0 ? command.text.indexOf(' ', listCommandStart) : command.text.length;
-        const listCommand = command.text.substring(listCommandStart, listCommandEnd);
-        const listId = listCommand.split("=")[1];
-        const members = await getListMembers(Number(listId));
+        const { value, text } = getOptionFromText(command.text, 'list');
+        const members = await getListMembers(Number(value));
         usersIds = members;
-        command.text = command.text.replace(/--list=[0-9]{0,}/g, '')
+        command.text = text;
     } else {
         const membersResponse: any = await app.client.conversations.members({ channel: command.channel_id });
         usersIds = membersResponse.members
