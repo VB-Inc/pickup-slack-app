@@ -28,6 +28,7 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
     let userIds: { id: string; }[] = [];
     usersToAdd.forEach(user => {
         if (user?.id) {
+            // FIXME: refactor this typescript hack
             userIds.push({ id: (user.id as string) });
         }
     });

@@ -6,26 +6,37 @@ import { app, receiver } from './boltApp'
 import { createList, getListMembers } from './list/list';
 import { isCommandUsingList } from './list/utilities'
 import { createRotation } from './rotation'
+import { addRotationLog } from './rotationLog'
+import { getRotationMembers, getUserFromRotation, isCommandUsingRotation } from './rotation/utilities';
 
 
-app.command('/pickup', createList, createRotation, async ({ command, ack, say }) => {
+app.command('/pickup', addRotationLog, createList, createRotation, async ({ command, ack, say }) => {
     // Acknowledge command request
     await ack();
 
     let usersIds: string[] = [];
+    const isCommandWithRotation = isCommandUsingRotation(command.text)
     if (isCommandUsingList(command.text)) {
         // add list usage logic
         const { value, text } = getOptionFromText(command.text, 'list');
         const members = await getListMembers(Number(value));
         usersIds = members;
         command.text = text;
-    } else {
+    } else if (isCommandWithRotation) {
+        // add rotation usage logic
+        const { value, text } = getOptionFromText(command.text, 'rotation');
+        const members = await getRotationMembers(Number(value));
+        usersIds = members;
+        command.text = text;
+    }
+
+    else {
         const membersResponse: any = await app.client.conversations.members({ channel: command.channel_id });
         usersIds = membersResponse.members
     }
     const realUsers = await filterRealUsers(app, usersIds)
     const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(app, realUsers) : realUsers
-    const userChosenId = getRandomItemFromList(onlineUsers).id;
+    const userChosenId = isCommandWithRotation ? (await getUserFromRotation(onlineUsers)).id : getRandomItemFromList(onlineUsers).id;
 
     const text = command.text.replace('--online', '').trim();
 
