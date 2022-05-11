@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model List {
-  id        Int        @id @default(autoincrement())
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime   @default(now())
   channelId String
   users     User[]
@@ -16,14 +16,14 @@ model List {
 }
 
 model User {
-  id          String        @id
+  id String @id @map("_id") @db.ObjectId
   List        List?         @relation(fields: [listId], references: [id])
   listId      Int?
   RotationLog RotationLog[]
 }
 
 model Rotation {
-  id          Int           @id @default(autoincrement())
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   list        List          @relation(fields: [listId], references: [id])
   listId      Int
@@ -31,7 +31,7 @@ model Rotation {
 }
 
 model RotationLog {
-  id         Int      @id @default(autoincrement())
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   date       DateTime
   user       User     @relation(fields: [userId], references: [id])
   rotation   Rotation @relation(fields: [rotationId], references: [id])
