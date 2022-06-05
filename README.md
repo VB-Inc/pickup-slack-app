@@ -10,6 +10,7 @@ Command examples
 - `/pickup rotation create standup --list={listId}` : Will create a round-robin rotation for standup and assign that list of people with that rotation
 - `/pickup ?{message} --rotation={rotationId}` : Will pick next person from rotation and let them know why they are picked up with a message
 - `/pickup --rotation-log --rotation={rotationId} @user`: Will add rotation log for the day, on the name of that person, to continue object of round-robin rotation
+- `/pickup ?{message} --rotation={rotationId} --usersCount={usersCount}` : Will pick next persons as per count passed to rotation and let them know why they are picked up with a message
 
 #### How to run the project on Slack?
 

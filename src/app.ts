@@ -35,13 +35,16 @@ app.command('/pickup', addRotationLog, createList, createRotation, async ({ comm
         usersIds = membersResponse.members
     }
     const realUsers = await filterRealUsers(app, usersIds)
-    const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(app, realUsers) : realUsers
-    const userChosenId = isCommandWithRotation ? (await getUserFromRotation(onlineUsers)).id : getRandomItemFromList(onlineUsers).id;
+    const onlineUsers = command.text.includes('--online') ? await filterOnlineUsers(app, realUsers) : realUsers;
+    const { value: usersCount, text: newText } = getOptionFromText(command.text, 'usersCount');
+    command.text = newText
+    const userChosenId: string | Array<string> = isCommandWithRotation ? (await getUserFromRotation(onlineUsers, usersCount ? Number(usersCount) : undefined)).map(user => user.id) : getRandomItemFromList(onlineUsers).id;
 
     const text = command.text.replace('--online', '').trim();
 
     const message = text.length > 0 ? `you are picked up for: ${text}` : `you are picked up randomly by ${command.user_name}. But we don't know why 😔`;
-    await say(`Hey <@${userChosenId}> , ${message}`);
+
+    await say(`Hey ${Array.isArray(userChosenId) ? userChosenId.map(id => `<@${id}>`).join(' , ') : `<@${userChosenId}>`} , ${message}`);
 });
 
 
