@@ -11,7 +11,7 @@ const createRotation: Middleware<SlackCommandMiddlewareArgs> = async ({ command,
 
     const text = command.text.replace(createRotationRegex, '').trim();
     const { value, text: updatedText } = getOptionFromText(text, 'list');
-    const list = await database.list.findFirst({ where: { id: Number(value) } });
+    const list = await database.list.findFirst({ where: { id: value } });
 
     if (!list) {
         return ack('Please enter valid list id for this rotation command');
