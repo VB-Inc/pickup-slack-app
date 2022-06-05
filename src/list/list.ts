@@ -1,6 +1,33 @@
 import { Middleware, SlackCommandMiddlewareArgs } from '@slack/bolt';
 import { getUserProfilesFromConversation } from '../user'
-import database from '../db-instance'
+import database from '../db-instance';
+
+const addUsersInDatabase = async (userIds: string[]) => {
+    const usersInDatabase = await database.user.findMany({
+        where: {
+            id: {
+                in: userIds
+            }
+        },
+        select: {
+            id: true
+        }
+    });
+
+    const idsInDatabase = usersInDatabase.map(user => user.id);
+    const userIdsNotInDatabase = userIds.filter(id => !idsInDatabase.includes(id));
+    if (userIdsNotInDatabase.length === 0) {
+        return;
+    }
+
+    userIdsNotInDatabase.forEach(async (userId) => {
+        await database.user.create({
+            data: {
+                id: userId
+            }
+        })
+    })
+}
 
 const createListRegex = /^list create /g;
 const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say, ack, next }) => {
@@ -23,7 +50,10 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
 
     // Get requested members list array
 
-    await database.$connect();
+    if (usersToAdd) {
+        const userIdsToAdd = usersToAdd.map(user => user?.id);
+        await addUsersInDatabase(userIdsToAdd as string[]);
+    }
 
     let userIds: { id: string; }[] = [];
     usersToAdd.forEach(user => {
@@ -38,7 +68,7 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
             data: {
                 channelId: command.channel_id,
                 users: {
-                    create: [
+                    connect: [
                         ...userIds
                     ]
                 }
@@ -47,7 +77,7 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
     // Store channelId, list of members ID and listName
 
     await database.$disconnect();
-    await say(`${list.id} created. Use this list anytime for picking up a random member`);
+    await say(`List - '${list.id}' created. Use this list anytime for picking up a random member`);
 }
 
 const getListMembers = async (listId: number) => {
