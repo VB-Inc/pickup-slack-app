@@ -16,9 +16,9 @@ model List {
 }
 
 model User {
-  id String @id @map("_id") @db.ObjectId
+  id String @id @map("_id")
   List        List?         @relation(fields: [listId], references: [id])
-  listId      Int?
+  listId      String?
   RotationLog RotationLog[]
 }
 
@@ -26,7 +26,7 @@ model Rotation {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   list        List          @relation(fields: [listId], references: [id])
-  listId      Int
+  listId      String
   RotationLog RotationLog[]
 }
 
@@ -36,5 +36,5 @@ model RotationLog {
   user       User     @relation(fields: [userId], references: [id])
   rotation   Rotation @relation(fields: [rotationId], references: [id])
   userId     String
-  rotationId Int
+  rotationId String
 }

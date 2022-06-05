@@ -11,7 +11,7 @@ const addRotationLog = async ({ command, ack, next, client }: any) => {
 
     const text = command.text.replace(addRotationLogRegex, '').trim();
     let { value: rotationId, text: updatedText } = getOptionFromText(text, 'rotation');
-    const rotation = await database.rotation.findFirst({ where: { id: Number(rotationId) } });
+    const rotation = await database.rotation.findFirst({ where: { id: rotationId } });
 
     if (!rotation) {
         return ack('Please enter valid rotation id for this rotation command');
@@ -32,7 +32,7 @@ const addRotationLog = async ({ command, ack, next, client }: any) => {
     await database.rotationLog.create({
         data: {
             date: new Date(),
-            rotationId: Number(rotationId),
+            rotationId: rotationId,
             userId
         }
     })

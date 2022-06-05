@@ -9,7 +9,7 @@ const isCommandUsingRotation = (command: string) => {
     }
 }
 
-const getRotationMembers = async (rotationId: number) => {
+const getRotationMembers = async (rotationId: string) => {
     await database.$connect();
 
     const members = await database.rotation.findFirst({
@@ -22,7 +22,7 @@ const getRotationMembers = async (rotationId: number) => {
     return members.map(member => member.id);
 }
 
-const getUserFromRotation = async (users: any[], usersCount: number = 0): Promise<Array<any>> => {
+const getUserFromRotation = async (users: any[], usersCount: number = 1): Promise<Array<any>> => {
     await database.$connect();
 
     const usersInRotationLogs = await database.rotationLog.findMany({
@@ -38,7 +38,7 @@ const getUserFromRotation = async (users: any[], usersCount: number = 0): Promis
 
     const usersWithCount = users.map(user => ({ user, count: usersInRotationLogs.filter(userInRotiationLog => userInRotiationLog.user.id === user.id).length }))
     usersWithCount.sort((a, b) => a.count - b.count);
-    return usersWithCount.slice(0, usersCount + 1).map(userWithCount => userWithCount.user);
+    return usersWithCount.slice(0, usersCount).map(userWithCount => userWithCount.user);
 }
 
 

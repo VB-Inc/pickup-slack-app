@@ -80,7 +80,7 @@ const createList: Middleware<SlackCommandMiddlewareArgs> = async ({ command, say
     await say(`List - '${list.id}' created. Use this list anytime for picking up a random member`);
 }
 
-const getListMembers = async (listId: number) => {
+const getListMembers = async (listId: string) => {
     await database.$connect();
 
     const members = await database.list.findFirst({

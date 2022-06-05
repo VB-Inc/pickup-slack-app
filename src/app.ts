@@ -19,13 +19,13 @@ app.command('/pickup', addRotationLog, createList, createRotation, async ({ comm
     if (isCommandUsingList(command.text)) {
         // add list usage logic
         const { value, text } = getOptionFromText(command.text, 'list');
-        const members = await getListMembers(Number(value));
+        const members = await getListMembers(value);
         usersIds = members;
         command.text = text;
     } else if (isCommandWithRotation) {
         // add rotation usage logic
         const { value, text } = getOptionFromText(command.text, 'rotation');
-        const members = await getRotationMembers(Number(value));
+        const members = await getRotationMembers(value);
         usersIds = members;
         command.text = text;
     }
